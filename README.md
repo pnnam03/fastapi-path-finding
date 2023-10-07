@@ -1,5 +1,6 @@
 # fastapi-path-finding
 - Clone the repo
+- Python version: ``3.8.0``
 - In `/fastapi-path-finding`
 ```
 pip install -r requirements.txt

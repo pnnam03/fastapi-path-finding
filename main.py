@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
 
 origins = [
-    "http://localhost:3000",
+    "https://vite-path-finding.vercel.app",
     "http://localhost:5173",
 ]
 

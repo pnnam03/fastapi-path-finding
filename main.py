@@ -1,23 +1,25 @@
+import json
+import math
+
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from path_finding_algo.a_star import a_star
 from path_finding_algo.bfs import bfs
 from path_finding_algo.dfs import dfs_wrapper
 from path_finding_algo.dijkstra import dijkstra
-from path_finding_algo.a_star import a_star
-import json
-import math
-from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
 origins = [
     "https://vite-path-finding.vercel.app",
-    "http://localhost:5173",
+    "http://localhost:5174",
 ]
 
 # Add CORS middleware to the FastAPI app
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],  # You can specify specific HTTP methods like ["GET", "POST"]
     allow_headers=["*"],  # You can specify specific HTTP headers like ["Authorization"]
@@ -45,7 +47,7 @@ async def receive_post(request_body: dict):
     stop = find_id_of_node(request_body["stop"]["lat"], request_body["stop"]["lng"])
     algorithm = request_body["algorithm"]
 
-    path = []
+    result = {}
     if algorithm == "bfs":
         result = bfs(
             start=start,
@@ -76,7 +78,7 @@ async def receive_post(request_body: dict):
         )
     elif algorithm == "bellman-ford":
         pass
-    
+
     return {"path": result['coords'], 'length': get_path_length(result['path'])}
 
 
@@ -101,7 +103,7 @@ async def receive_post(request_body: dict):
             nearest_node = node
             min_distance = distance
 
-    if nearest_node == None:
+    if nearest_node is None:
         return None
     return {"lat": nearest_node["y"], "lng": nearest_node["x"]}
 
@@ -117,17 +119,18 @@ def find_id_of_node(lat, lng):
             return edge["v"]
     return -1
 
-def get_path_length(path):  
+
+def get_path_length(path):
     graph = {node["id"]: {} for node in nodes}
     for edge in edges:
         graph[edge["u"]][edge["v"]] = edge["length"]
-        if edge["oneway"] == False:
+        if not edge["oneway"]:
             graph[edge["v"]][edge["u"]] = edge["length"]
-    
+
     total_length = 0
     for i, node in enumerate(path):
-        if i+1 == len(path):
+        if i + 1 == len(path):
             break
-        total_length += graph[node][path[i+1]]
-        
+        total_length += graph[node][path[i + 1]]
+
     return total_length

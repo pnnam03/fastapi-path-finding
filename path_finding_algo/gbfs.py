@@ -7,7 +7,7 @@ def euclidean_distance(node1, node2):
     x2, y2 = node2["x"], node2["y"]
     return ((x1 - x2)**2 + (y1 - y2)**2)**0.5
 
-def a_star(
+def gbfs(
     start, stop, NODES_FILE="../input/nodes.json", EDGES_FILE="../input/edges.json"
 ):
     with open(NODES_FILE, "r") as f:
@@ -58,7 +58,7 @@ def a_star(
         for neighbor, weight in graph[current_node].items():
             distance = current_distance + weight
             heuristic = euclidean_distance(new_nodes_data[f"{neighbor}"], new_nodes_data[f"{stop}"])
-            f_value = distance + heuristic
+            f_value = heuristic
 
             if distance < distances[neighbor]:
                 distances[neighbor] = distance

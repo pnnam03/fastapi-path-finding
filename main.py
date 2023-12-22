@@ -3,6 +3,9 @@ from path_finding_algo.bfs import bfs
 from path_finding_algo.dfs import dfs_wrapper
 from path_finding_algo.dijkstra import dijkstra
 from path_finding_algo.a_star import a_star
+from path_finding_algo.gbfs import gbfs
+from path_finding_algo.ids import ids
+from path_finding_algo.ucs import ucs
 import json
 import math
 from fastapi.middleware.cors import CORSMiddleware
@@ -23,10 +26,13 @@ app.add_middleware(
     allow_headers=["*"],  # You can specify specific HTTP headers like ["Authorization"]
 )
 
-with open("./input/nodes.json", "r") as f:
+NODES_FILE = "./input/nodes.json"
+EDGES_FILE = "./input/edges.json"
+
+with open(NODES_FILE, "r") as f:
     nodes = json.load(f)["nodes"]
 
-with open("./input/edges.json", "r") as f:
+with open(EDGES_FILE, "r") as f:
     edges = json.load(f)["edges"]
 
 new_nodes_data = {}
@@ -50,34 +56,52 @@ async def receive_post(request_body: dict):
         result = bfs(
             start=start,
             stop=stop,
-            NODES_FILE="./input/nodes.json",
-            EDGES_FILE="./input/edges.json",
+            NODES_FILE=NODES_FILE,
+            EDGES_FILE=EDGES_FILE,
         )
     elif algorithm == "dfs":
         result = dfs_wrapper(
             start=start,
             stop=stop,
-            NODES_FILE="./input/nodes.json",
-            EDGES_FILE="./input/edges.json",
+            NODES_FILE=NODES_FILE,
+            EDGES_FILE=EDGES_FILE,
         )
     elif algorithm == "dijkstra":
         result = dijkstra(
             start=start,
             stop=stop,
-            NODES_FILE="./input/nodes.json",
-            EDGES_FILE="./input/edges.json",
+            NODES_FILE=NODES_FILE,
+            EDGES_FILE=EDGES_FILE,
         )
-    elif algorithm == "a*":
+    elif algorithm == "astar":
         result = a_star(
             start=start,
             stop=stop,
-            NODES_FILE="./input/nodes.json",
-            EDGES_FILE="./input/edges.json",
+            NODES_FILE=NODES_FILE,
+            EDGES_FILE=EDGES_FILE,
         )
-    elif algorithm == "bellman-ford":
-        pass
-    
-    return {"path": result['coords'], 'length': get_path_length(result['path'])}
+    elif algorithm == "ucs":
+        result = ucs(
+            start=start,
+            stop=stop,
+            NODES_FILE=NODES_FILE,
+            EDGES_FILE=EDGES_FILE,
+        )
+    elif algorithm == "gbfs":
+        result = gbfs(
+            start=start,
+            stop=stop,
+            NODES_FILE=NODES_FILE,
+            EDGES_FILE=EDGES_FILE,
+        )
+    elif algorithm == "ids":
+        result = ids(
+            start=start,
+            stop=stop,
+            NODES_FILE=NODES_FILE,
+            EDGES_FILE=EDGES_FILE,
+        )
+    return {"path": result["coords"], "length": get_path_length(result["path"])}
 
 
 @app.post("/find_nearest_node")
@@ -117,17 +141,18 @@ def find_id_of_node(lat, lng):
             return edge["v"]
     return -1
 
-def get_path_length(path):  
+
+def get_path_length(path):
     graph = {node["id"]: {} for node in nodes}
     for edge in edges:
         graph[edge["u"]][edge["v"]] = edge["length"]
         if edge["oneway"] == False:
             graph[edge["v"]][edge["u"]] = edge["length"]
-    
+
     total_length = 0
     for i, node in enumerate(path):
-        if i+1 == len(path):
+        if i + 1 == len(path):
             break
-        total_length += graph[node][path[i+1]]
-        
+        total_length += graph[node][path[i + 1]]
+
     return total_length
